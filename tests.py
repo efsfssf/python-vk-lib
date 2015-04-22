@@ -5,6 +5,11 @@ import unittest
 import auth
 import feed
 import profile
+import sys
+
+LOGIN = sys.argv[1]
+PASS = sys.argv[2]
+sys.argv = [sys.argv[0],] + sys.argv[3:]
 
 class TestFeed(unittest.TestCase):
     def setUp(self):
