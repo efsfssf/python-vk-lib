@@ -15,11 +15,14 @@ class Post:
         self.photos = []
         self.videos = []
         self.media = None
+        self.is_comment = False
         self.parse(root)
 
     def parse(self, root):
         wall_text = root.find("div", {"class":"wall_text_name"})
         self.author = Profile(url=wall_text.a["href"], id=int(wall_text.a["data-from-id"]), name=unicode(wall_text.a.string))
+        self.id = root.find("div", { "class": "replies" }).find("div", { "class" : "reply_link_wrap"})["id"][10:]
+        self.is_comment = root.find("a", { "class" : "reply_parent_link"}) is not None
         repost_table = root.find("table", { "class" : "published_by_wrap" })
         if repost_table is not None:
             repost_a = repost_table.find("a", { "class" : "published_by"})

@@ -33,12 +33,13 @@ def get(session, url):
     soup = BeautifulSoup(r.text, "lxml")
     soup.prettify()
 
-    id = int(re.search("fansBox\((?P<id>\d+),", soup.find("a", { "class" : "fans" })["onclick"]).group("id"))
+    id = int(soup.find("a", id="profile_gift_send_btn")["href"][6:].split("?")[0])
     name = unicode(soup.find("div", { "class" : "page_name fl_l ta_l" }).string)
     result = Profile(id, name, url)
 
-    result.friends_count = int("".join(soup.find("div", id="profile_friends")
-        .find("div", { "class" : "p_header_bottom"}).stripped_strings).split()[0])
+    if soup.find("div", id="profile_friends") is not None:
+        result.friends_count = int("".join(soup.find("div", id="profile_friends")
+            .find("div", { "class" : "p_header_bottom"}).stripped_strings).split()[0])
 
     status_span = soup.find("span", { "class" : "current_text"})
     if status_span is not None:
