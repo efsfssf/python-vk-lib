@@ -12,11 +12,15 @@ class Post:
         self.author = None
         self.repost_data = None
         self.text = ""
+        self.photos_raw = []
         self.photos = []
         self.videos = []
         self.media = None
         self.is_comment = False
-        self.parse(root)
+        try:
+            self.parse(root)
+        except Exception, ex:
+            raise Exception("Post invalid markup `%s`. %s" % (root, str(ex)))
 
     def parse(self, root):
         wall_text = root.find("div", {"class":"wall_text_name"})
@@ -26,7 +30,7 @@ class Post:
         repost_table = root.find("table", { "class" : "published_by_wrap" })
         if repost_table is not None:
             repost_a = repost_table.find("a", { "class" : "published_by"})
-            self.repost_data = { 
+            self.repost_data = {
                 "author_url": repost_a["href"],
                 "post_id": repost_a["data-post-id"]
             }
@@ -46,18 +50,29 @@ class Post:
                 photo_content = re.search('\{"base".+?\}', content_a["onclick"])
                 video_content = re.search("showInlineVideo\('(?P<id>[\d_]+)'", content_a["onclick"])
                 if photo_content is not None:
-                    self.photos.append(json.loads(photo_content.group()))
+                    self.photos_raw.append(json.loads(photo_content.group()))
                 if video_content is not None:
                     self.videos.append(video_content.group('id'))
+
+        for photo in self.photos_raw:
+            base = photo["base"]
+            if "z_" in photo:
+                link = base + photo["z_"][0]
+            elif "y_" in photo:
+                link = base + photo["y_"][0]
+            else:
+                link = base + photo["x_"][0]
+            link += ".jpg"
+            self.photos.append(link)
 
     def text_with_newlines(self, elem):
         text = ''
         for e in elem.recursiveChildGenerator():
             if isinstance(e, basestring):
-                text += e.strip()
+                text += e
             elif e.name == 'br':
                 text += '\n'
-        return text                    
+        return text
 
     def __unicode__(self):
         return "%s #%s -> %s" % (self.author.name, self.author.id, self.text)

@@ -33,7 +33,10 @@ def get(session, url):
     soup = BeautifulSoup(r.text, "lxml")
     soup.prettify()
 
-    id = int(soup.find("a", id="profile_gift_send_btn")["href"][6:].split("?")[0])
+    id_root = soup.find("a", id="profile_gift_send_btn")
+    if id_root is None:
+        raise Exception("It's not a profile")
+    id = int(id_root["href"][6:].split("?")[0])
     name = unicode(soup.find("div", { "class" : "page_name fl_l ta_l" }).string)
     result = Profile(id, name, url)
 
