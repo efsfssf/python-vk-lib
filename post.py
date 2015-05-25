@@ -2,9 +2,42 @@
 # -*- coding: utf-8 -*-
 
 from profile import Profile
+from bs4 import BeautifulSoup
+from util import check_response
+import urllib
 import re
 import urllib
 import json
+
+
+def public(session, text, to_type, to_id, official=True, signed=False, status_export = False):
+    if to_type != "id" and to_type != "public" and to_type != "club":
+        raise ValueError("to_type must be `id`, `public` or `club`")
+    to_id = 70564753
+    r = session.get("https://vk.com/%s%s" % (to_type, str(to_id)))
+    check_response(r)
+    profile_hash = re.search('"post_hash":"(?P<hash>[0-9abcdef]+)"', r.text).group("hash")
+    payload = {
+        "Message": text,
+        "act": "post",
+        "al": "1",
+        "status_export": "1" if status_export else "",
+        "hash": profile_hash,
+        "facebook_export": "fixed",
+        "fixed": "",
+        "from": "",
+        "signed": "1" if signed else "",
+        "friends_only": "",
+        "official": "1" if official and to_type in ('public', 'club') else "",
+        "to_id": str(-int(to_id) if to_type in ('public', 'club') else int(to_id)),
+        "type": "own"
+    }
+    r = session.post("https://vk.com/al_wall.php", payload, {
+            "Referer":"https://vk.com/public" + str(to_id),
+            "X-Requested-With" : "XMLHttpRequest"})
+    if len(r.text) < 64:
+        raise Exception("Wrong response. Probably captha: " + r.text)
+
 
 class Post:
     def __init__(self, root):

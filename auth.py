@@ -6,7 +6,7 @@ import requests
 import vkexceptions
 import re
 
-USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.57 Safari/537.17"
+USER_AGENT = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.152 Safari/537.360"
 
 class VkSession:
     def __init__(self, login, password):
@@ -14,20 +14,32 @@ class VkSession:
         self.password = password
         self.session = ""
 
-    def get(self, url):
-        r = requests.get(url, headers = { 
-            "Cookie" : "remixsid=%s" % self.session,
+    def get(self, url, headers = {}):
+        headers_original = {
+            "Origin": "https://vk.com",
+            "Cookie" : "remixsslsid=1; remixsid=%s" % self.session,
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
             "Accept-Charset": "utf-8",
-            "User-Agent": USER_AGENT })
+            "User-Agent": USER_AGENT }
+        headers_original.update(headers)
+        r = requests.get(url, headers=headers_original)
         r.raise_for_status()
         return r
 
-    def post(self, url, payload):
-        r = requests.post(url, data=payload, headers = { 
-            "Cookie" : "remixsid=%s" % self.session,
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    def post(self, url, payload, headers = {}):
+        headers_original = {
+            "Origin": "https://vk.com",
+            "Cookie" : "remixsslsid=1; remixsid=%s" % self.session,
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4",
+            "Pragma":"no-cache",
+            "Cache-Control":"no-cache",
             "Accept-Charset": "utf-8",
-            "User-Agent": USER_AGENT })
+            "User-Agent": USER_AGENT }
+        headers_original.update(headers)
+        print headers_original
+        r = requests.post(url, data=payload, headers=headers_original)
         r.raise_for_status()
         return r
 
