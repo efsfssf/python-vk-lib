@@ -38,7 +38,6 @@ class VkSession:
             "Accept-Charset": "utf-8",
             "User-Agent": USER_AGENT }
         headers_original.update(headers)
-        print headers_original
         r = requests.post(url, data=payload, headers=headers_original)
         r.raise_for_status()
         return r

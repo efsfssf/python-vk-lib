@@ -13,7 +13,6 @@ import json
 def public(session, text, to_type, to_id, official=True, signed=False, status_export = False):
     if to_type != "id" and to_type != "public" and to_type != "club":
         raise ValueError("to_type must be `id`, `public` or `club`")
-    to_id = 70564753
     r = session.get("https://vk.com/%s%s" % (to_type, str(to_id)))
     check_response(r)
     profile_hash = re.search('"post_hash":"(?P<hash>[0-9abcdef]+)"', r.text).group("hash")
@@ -71,7 +70,11 @@ class Post:
         #print root.find("div", { "class" : "wall_post_text"}).stripped_strings
         text_div = root.find("div", { "class" : "wall_post_text"})
         if text_div is not None:
-            self.text = unicode(self.text_with_newlines(root.find("div", { "class" : "wall_post_text"})))
+            self.text = unicode(self.text_with_newlines(root.find("div", { "class" : "wall_post_text"}))).replace(u"Показать полностью..", "")
+
+        link = root.find("a", { "class": "lnk" })
+        if link is not None:
+            self.media = link.span.string
 
         media_link = root.find("div", { "class" : "page_media_thumbed_link"})
         if media_link is not None:
