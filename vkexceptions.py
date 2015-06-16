@@ -5,5 +5,6 @@
 class SecurityException(Exception):
     pass
 
-class InvalidCredentialsException(Exception):
-    pass
+class InvalidAuthException(Exception):
+    def __init__(self, message=""):
+        super(Exception, self).__init__(message)

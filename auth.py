@@ -45,7 +45,8 @@ class VkSession:
 
 def login(login, password):
     result = VkSession(login, password)
-    ip_h = __get_ip_h()
+    ip_h, lg_h, remix_lhk = __get_h()
+    #print ip_h, lg_h, remix_lhk
     payload = {
         "act": "login",
         "role": "al_frame",
@@ -54,6 +55,7 @@ def login(login, password):
         "captcha_sid": "",
         "_origin": "https://vk.com",
         "ip_h": ip_h,
+        "lg_h": lg_h,
         "email": login,
         "pass": password
     }
@@ -61,20 +63,26 @@ def login(login, password):
         "Referer": "https://vk.com",
         "Origin": "https://vk.com",
         "Accept-Charset": "utf-8",
+        "Cookie": "remixlang=0; remixlhk=%s; remixdt=0; remixflash=18.0.0; remixscreen_depth=24" % remix_lhk,
         "User-Agent":USER_AGENT
     }
-    r = requests.post("https://login.vk.com/?act=login", data=payload, headers=headers)
+    r = requests.post("https://login.vk.com/?act=slogin", data=payload, headers=headers)
     r.raise_for_status()
     if "Set-Cookie" not in r.headers:
-        raise vkexceptions.InvalidCredentialsException()
-    result.session = re.search('remixsid=([A-Za-z0-9]+)', r.headers["Set-Cookie"]).group().split("=")[1]
-    if result.session == "DELETED":
-        raise vkexceptions.InvalidCredentialsException()
+        raise vkexceptions.InvalidAuthException("No Cookie")
+    if r.status_code == 200:
+        result.session = re.search('remixsid=([A-Za-z0-9]+)', r.headers["Set-Cookie"]).group().split("=")[1]
+        if result.session == "DELETED":
+            raise vkexceptions.InvalidAuthException("200: DELETED Session")
+    else:
+        raise vkexceptions.InvalidAuthException("NON 200 CODE")
     return result
 
 
-def __get_ip_h():
+def __get_h():
     r = requests.get("https://vk.com")
     r.raise_for_status()
-    ip_h = re.search('ip_h=([A-Za-z0-9]+)', r.text)
-    return ip_h.group().split('=')[1]
+    ip_h = re.search('"ip_h" value="(?P<h>[A-Za-z0-9]+)"', r.text)
+    lg_h = re.search('"lg_h" value="(?P<h>[A-Za-z0-9]+)"', r.text)
+    remix_lhk = re.search('remixlhk=(?P<h>[A-Za-z0-9]+);', r.headers["Set-Cookie"])
+    return ip_h.group("h"), lg_h.group("h"), remix_lhk.group("h")
