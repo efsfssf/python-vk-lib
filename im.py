@@ -36,3 +36,6 @@ def return_to_chat(session,chat_id):
 
 def change_caccess(session,chat_id,memberid,access):
     return session.post("https://vk.com/al_im.php",{"act":"a_change_caccess","al":1,"hash":get_chat_hash(session,chat_id), "peer_id":peer_id,"member_id":member_id,"access":state,"im_v":2,"gid":0}).text
+
+def update_flags(session,chat_id,flags):
+    return session.post("https://vk.com/al_im.php",{"act":"a_update_flags","al":1,"hash":get_chat_hash(session,chat_id),"chat":chat_id, "flags":flags, "im_v":2,"gid":0}).text
