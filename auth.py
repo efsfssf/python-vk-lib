@@ -42,32 +42,45 @@ class VkSession:
         r.raise_for_status()
         return r
 
+    def get_session(self):
+        return self.session
 
-def login(login, password):
+def login(login, password, remixsid = None):
     result = VkSession(login, password)
-    ip_h, lg_h, remix_lhk = __get_h()
-    #print ip_h, lg_h, remix_lhk
+    # try reuse remixsid
+    if remixsid:
+        result.session = remixsid
+        if 'methodRun' in result.get("https://vk.com/dev/execute").text:return result
+
+    ip_h, lg_h, cookie = __get_h()
+    remixlhk = re.findall('remixlhk=(?P<h>[A-Za-z0-9]+);', cookie)[1]
+    remixstid = re.search('remixstid=(?P<h>[A-Za-z0-9_]+);', cookie).group('h')
+
     payload = {
         "act": "login",
         "role": "al_frame",
         "expire": "",
+        "recapthca":"",
         "captcha_key": "",
         "captcha_sid": "",
         "_origin": "https://vk.com",
         "ip_h": ip_h,
         "lg_h": lg_h,
         "email": login,
-        "pass": password
+        "pass": password,
+        "utf-8": "1"
     }
     headers = {
         "Referer": "https://vk.com",
         "Origin": "https://vk.com",
         "Accept-Charset": "utf-8",
-        "Cookie": "remixlang=0; remixlhk=%s; remixdt=0; remixflash=18.0.0; remixscreen_depth=24" % remix_lhk,
+        "Cookie": "remixlang=0; remixlhk=%s; remixstid=%s; remixdt=0; remixflash=18.0.0; remixscreen_depth=24" % (remixlhk, remixstid),
         "User-Agent":USER_AGENT
     }
-    r = requests.post("https://login.vk.com/?act=slogin", data=payload, headers=headers)
+    
+    r = requests.post("https://login.vk.com/?act=login", data=payload, headers=headers)
     r.raise_for_status()
+
     if "Set-Cookie" not in r.headers:
         raise vkexceptions.InvalidAuthException("No Cookie")
     if r.status_code == 200:
@@ -80,9 +93,10 @@ def login(login, password):
 
 
 def __get_h():
-    r = requests.get("https://vk.com")
+    r = requests.get("https://vk.com/login")
     r.raise_for_status()
+
     ip_h = re.search('"ip_h" value="(?P<h>[A-Za-z0-9]+)"', r.text)
     lg_h = re.search('"lg_h" value="(?P<h>[A-Za-z0-9]+)"', r.text)
-    remix_lhk = re.search('remixlhk=(?P<h>[A-Za-z0-9]+);', r.headers["Set-Cookie"])
-    return ip_h.group("h"), lg_h.group("h"), remix_lhk.group("h")
+
+    return ip_h.group("h"), lg_h.group("h"), r.headers["Set-Cookie"]
