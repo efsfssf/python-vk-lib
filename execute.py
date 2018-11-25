@@ -10,11 +10,11 @@ def do_execute(session, hash, code):
     return resp
 
 def execute(session, code):
-    print session.dev_hash
+#    print session.dev_hash
     s = vk.parse(do_execute(session, session.dev_hash, code))
     if s:return json.loads(s)
     session.update_dev_hash()
     return json.loads(vk.parse(do_execute(session, session.dev_hash, code)))
 
 def call(session, method, params):
-    return execute(session,'return API.'+method+'('+json.dumps(params, ensure_ascii=False).encode('utf8').replace('u\'','"').replace('\'','"')+');')
+    return execute(session,'return API.'+method+'('+json.dumps(params, ensure_ascii=False).replace('u\'','"').replace('\'','"')+');')

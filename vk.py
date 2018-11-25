@@ -3,7 +3,7 @@ import json
 
 def parse(s):
 	spl = s.split('<!>')
-	print spl
+#	print spl
 	error = spl[4]
 	if int(error) != 0:
 		raise Exception(spl[5])

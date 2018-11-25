@@ -13,7 +13,7 @@ MAIL_CHAT_FLAG_ONLY_ADMINS_CAN_PIN = 4
 def im_request(session, chat_id, params):
     add = {"al":1,"hash":get_chat_hash(session,chat_id),"im_v":2,"gid":0}
     params.update(add)
-    print add
+#    print add
     return vk.parse(session.post("https://vk.com/al_im.php",params).text)
 
 def add_chat_bot(session, chat_id, bot_id):
