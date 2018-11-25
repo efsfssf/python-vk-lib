@@ -13,6 +13,7 @@ class VkSession:
         self.login = login
         self.password = password
         self.session = ""
+        self.dev_hash = ""
 
     def get(self, url, headers = {}):
         headers_original = {
@@ -45,12 +46,24 @@ class VkSession:
     def get_session(self):
         return self.session
 
+    def update_dev_hash(self):
+        r = self.get("https://vk.com/dev/execute")
+        start = r.text.find('methodRun')+11
+        if start > 0:
+            l = r.text[start:].find('\'')
+            self.dev_hash = r.text[start:start+l]
+            return True
+        return False
+
+
 def login(login, password, remixsid = None):
     result = VkSession(login, password)
     # try reuse remixsid
     if remixsid:
         result.session = remixsid
-        if 'methodRun' in result.get("https://vk.com/dev/execute").text:return result
+        r = result.get("https://vk.com/dev/execute")
+        if result.update_dev_hash():
+            return result
 
     ip_h, lg_h, cookie = __get_h()
     remixlhk = re.findall('remixlhk=(?P<h>[A-Za-z0-9]+);', cookie)[1]
@@ -89,6 +102,7 @@ def login(login, password, remixsid = None):
             raise vkexceptions.InvalidAuthException("200: DELETED Session")
     else:
         raise vkexceptions.InvalidAuthException("NON 200 CODE")
+    result.update_dev_hash()
     return result
 
 
