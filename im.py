@@ -9,6 +9,7 @@ MAIL_CHAT_FLAG_ADMINS_CAN_ADD_ADMINS = 16
 MAIL_CHAT_FLAG_ONLY_ADMINS_CAN_CHANGE_TITLE = 8
 MAIL_CHAT_FLAG_ONLY_ADMINS_CAN_INVITE = 1
 MAIL_CHAT_FLAG_ONLY_ADMINS_CAN_PIN = 4
+MAIL_CHAT_FLAG_DENY_ANYONE_TO_WRITE = 16384
 
 def im_request(session, chat_id, params):
     add = {"al":1,"hash":get_chat_hash(session,chat_id),"im_v":2,"gid":0}
